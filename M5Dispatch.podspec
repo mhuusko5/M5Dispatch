@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name = 'M5Dispatch'
-  s.version = '1.0.2'
+  s.version = '1.0.3'
   s.license = { :type => 'MIT', :file => 'LICENSE' }
   s.summary = 'Obj-C convenience macros/functions related to block dispatching.'
   s.homepage = 'https://github.com/mhuusko5/M5Dispatch'

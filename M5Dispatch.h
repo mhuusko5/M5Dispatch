@@ -16,11 +16,11 @@
     dispatch_once(&onceToken, BLOCK); \
 })
 
-/* Returns result of calling block once. */
+/* Returns result of calling block once. BLOCK == { ... } NOT ^{ ... }. */
 #define M5DispatchOnceReturn(TYPE, BLOCK) \
 ({ \
     static TYPE obj; \
-    M5DispatchOnce(^{ obj = BLOCK(); }); \
+    M5DispatchOnce(^{ obj = (^ TYPE BLOCK)(); }); \
     obj; \
 })
 
@@ -46,11 +46,11 @@
     throttled; \
 })
 
-/* Dispatches block synchronously and returns result. */
+/* Dispatches block synchronously and returns result. BLOCK == { ... } NOT ^{ ... }. */
 #define M5DispatchSyncReturn(QUEUE, TYPE, BLOCK) \
 ({ \
     __block TYPE obj; \
-    M5DispatchSync(QUEUE, ^{ obj = BLOCK(); }); \
+    M5DispatchSync(QUEUE, ^{ obj = (^ TYPE BLOCK)(); }); \
     obj; \
 })
 
