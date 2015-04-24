@@ -19,7 +19,7 @@
 /* Returns result of calling BLOCK once. */
 #define M5InitOnce(TYPE, BLOCK) \
 ({ \
-    static TYPE obj = nil; \
+    static TYPE obj; \
     M5DispatchOnce(^{ obj = BLOCK(); }); \
     obj; \
 })
@@ -44,6 +44,14 @@
         } \
     } \
     throttled; \
+})
+
+/* Dispatches block synchronously and returns result. */
+#define M5DispatchSyncReturn(QUEUE, TYPE, BLOCK) \
+({ \
+    __block TYPE obj; \
+    M5DispatchSync(QUEUE, ^{ obj = BLOCK(); }); \
+    obj; \
 })
 
 #pragma mark Functions
