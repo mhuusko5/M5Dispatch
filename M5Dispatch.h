@@ -16,8 +16,8 @@
     dispatch_once(&onceToken, BLOCK); \
 })
 
-/* Returns result of calling BLOCK once. */
-#define M5InitOnce(TYPE, BLOCK) \
+/* Returns result of calling block once. */
+#define M5DispatchOnceReturn(TYPE, BLOCK) \
 ({ \
     static TYPE obj; \
     M5DispatchOnce(^{ obj = BLOCK(); }); \
