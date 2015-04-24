@@ -9,22 +9,51 @@
 
 #pragma mark Macros
 
-/* Dispatches block once. */
-#define M5DispatchOnce(BLOCK) \
+/* Return block for dispatching block once. Usage: M5DispatchOnce(^{ NSLog(@"Hello!"); }); */
+#define M5DispatchOnce \
 ({ \
     static dispatch_once_t onceToken; \
-    dispatch_once(&onceToken, BLOCK); \
+    ^(dispatch_block_t block) { \
+        dispatch_once(&onceToken, block); \
+    }; \
 })
 
-/* Returns result of calling block once. BLOCK == { ... } NOT ^{ ... }. */
-#define M5DispatchOnceReturn(TYPE, BLOCK) \
+/* Return block for dispatching block max of once every SECS. Usage: M5DispatchThrottle(2.8)(^{ NSLog(@"Hello!"); }); */
+#define M5DispatchThrottle(SECS) \
+({ \
+    static NSDate *lastCall = nil; \
+    ^(dispatch_block_t block) { \
+        @synchronized(lastCall) { \
+            if (!lastCall || fabs(lastCall.timeIntervalSinceNow) > SECS) { \
+                lastCall = NSDate.date; \
+                block(); \
+            } \
+        } \
+    }; \
+})
+
+/* Return block for returning result of dispatching block once. Usage: M5DispatchOnceReturn(NSArray*)(^{ return NSArray.new; }); */
+#define M5DispatchOnceReturn(TYPE) \
 ({ \
     static TYPE obj; \
-    M5DispatchOnce(^{ obj = (^ TYPE BLOCK)(); }); \
-    obj; \
+    static dispatch_once_t onceToken; \
+    ^ TYPE (TYPE (^block)()) { \
+        dispatch_once(&onceToken, ^{ obj = block(); }); \
+        return obj; \
+    }; \
 })
 
-/* Use as the case in an if statement to have the statement only execute once. */
+/* Returns block for returning result of dispatching block synchronously. Usage: M5DispatchSyncReturn(dispatch_get_main_queue(), BOOL)(^{ return NO; }); */
+#define M5DispatchSyncReturn(QUEUE, TYPE) \
+({ \
+    __block TYPE obj; \
+    ^ TYPE (TYPE (^block)()) { \
+        M5DispatchSync(QUEUE, ^{ obj = block(); }); \
+        return obj; \
+    }; \
+})
+
+/* Returns YES only once, then NO. Usage: if (M5Once) { NSLog(@"Hello!"); } */
 #define M5Once \
 ({ \
     __block BOOL once = NO; \
@@ -32,7 +61,7 @@
     once; \
 })
 
-/* Use as the case in an if statement to have the statement not execute more than once every SECS. */
+/* Returns YES only if last YES was more than SECS ago. Usage: if (M5Throttle(2.3)) { NSLog(@"Hello!"); } */
 #define M5Throttle(SECS) \
 ({ \
     static NSDate *lastCall = nil; \
@@ -44,14 +73,6 @@
         } \
     } \
     throttled; \
-})
-
-/* Dispatches block synchronously and returns result. BLOCK == { ... } NOT ^{ ... }. */
-#define M5DispatchSyncReturn(QUEUE, TYPE, BLOCK) \
-({ \
-    __block TYPE obj; \
-    M5DispatchSync(QUEUE, ^{ obj = (^ TYPE BLOCK)(); }); \
-    obj; \
 })
 
 #pragma mark Functions
