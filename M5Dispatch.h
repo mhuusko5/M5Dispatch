@@ -89,4 +89,7 @@ extern void M5DispatchSync(dispatch_queue_t queue, dispatch_block_t block);
 /** Dispatch block async to queue. */
 extern void M5DispatchAsync(dispatch_queue_t queue, dispatch_block_t block);
 
+/** Returns main queue. */
+extern dispatch_queue_t M5MainQueue();
+
 #pragma mark -

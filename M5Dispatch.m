@@ -32,4 +32,8 @@ void M5DispatchAsync(dispatch_queue_t queue, dispatch_block_t block) {
     dispatch_async(queue, block);
 }
 
+dispatch_queue_t M5MainQueue() {
+    return dispatch_get_main_queue();
+}
+
 #pragma mark -
