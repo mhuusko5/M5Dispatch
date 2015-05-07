@@ -15,7 +15,20 @@ void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key
     static const void *queuedBlocksesKey = &queuedBlocksesKey;
     static const void *executingCountsKey = &executingCountsKey;
     
-    @synchronized(context) {
+    static dispatch_queue_t queueingQueue;
+    M5DispatchOnce(^{
+        queueingQueue = dispatch_queue_create("com.mhuusko5.M5Dispatch.Queueing", DISPATCH_QUEUE_SERIAL);
+    });
+    
+    __weak typeof(context) weakContext = context;
+    
+    M5DispatchAsync(queueingQueue, ^{
+        typeof(weakContext) context = weakContext;
+        
+        if (!context) {
+            return;
+        }
+        
         NSObject *queuedBlockses = objc_getAssociatedObject(context, queuedBlocksesKey);
         
         if (!queuedBlockses) {
@@ -39,38 +52,44 @@ void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key
         if (executingCount < limit) {
             objc_setAssociatedObject(executingCounts, key, @(++executingCount), OBJC_ASSOCIATION_RETAIN);
             
-            dispatch_async(queue, ^{
-                M5VoidBlock dequeueBlock = ^{
-                    @synchronized(context) {
-                        objc_setAssociatedObject(executingCounts, key, @([objc_getAssociatedObject(executingCounts, key) unsignedIntegerValue] - 1), OBJC_ASSOCIATION_RETAIN);
-                        
-                        M5QueuedDispatchBlock queuedBlock = queuedBlocks.firstObject;
-                        if (queuedBlock) {
-                            [queuedBlocks removeObject:queuedBlock];
-                            
-                            M5DispatchQueued(queue, context, key, limit, queuedBlock);
-                        }
+            M5VoidBlock blockExecuted = ^{
+                M5DispatchAsync(queueingQueue, ^{
+                    typeof(weakContext) context = weakContext;
+                    
+                    if (!context) {
+                        return;
                     }
-                };
-                
+                    
+                    objc_setAssociatedObject(executingCounts, key, @([objc_getAssociatedObject(executingCounts, key) unsignedIntegerValue] - 1), OBJC_ASSOCIATION_RETAIN);
+                    
+                    M5QueuedDispatchBlock queuedBlock = queuedBlocks.firstObject;
+                    if (queuedBlock) {
+                        [queuedBlocks removeObject:queuedBlock];
+                        
+                        M5DispatchQueued(queue, context, key, limit, queuedBlock);
+                    }
+                });
+            };
+            
+            M5DispatchAsync(queue, ^{
                 __weak M5VoidBlock weakFinished = nil;
                 M5VoidBlock finished = nil;
                 
                 weakFinished = finished = ^{
-                    dequeueBlock();
+                    blockExecuted();
                 };
                 
                 block(finished);
                 finished = nil;
                 
                 if (!weakFinished) {
-                    dequeueBlock();
+                    blockExecuted();
                 }
             });
         } else {
             [queuedBlocks addObject:block];
         }
-    }
+    });
 }
 
 void M5DispatchMain(dispatch_block_t block) {
