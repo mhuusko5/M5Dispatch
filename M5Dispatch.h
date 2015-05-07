@@ -87,9 +87,6 @@ typedef void (^M5QueuedDispatchBlock)(M5VoidBlock finished);
     For async/nested operations, keep (by simply referencing) and call the 'finished' block when you're done. */
 extern void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key, NSUInteger limit, M5QueuedDispatchBlock block);
 
-/** Dispatch block async to main queue. */
-extern void M5DispatchMain(dispatch_block_t block);
-
 /** Dispatch block async async to main queue after seconds. */
 extern void M5DispatchAfter(float seconds, dispatch_block_t block);
 
@@ -98,6 +95,12 @@ extern void M5DispatchSync(dispatch_queue_t queue, dispatch_block_t block);
 
 /** Dispatch block async to queue. */
 extern void M5DispatchAsync(dispatch_queue_t queue, dispatch_block_t block);
+
+/** Dispatch block async to main queue. */
+extern void M5DispatchMain(dispatch_block_t block);
+
+/** Checks if queue is the current queue. */
+extern BOOL M5OnQueue(dispatch_queue_t queue);
 
 /** Returns main queue. */
 extern dispatch_queue_t M5MainQueue();

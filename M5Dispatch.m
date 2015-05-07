@@ -22,7 +22,7 @@ void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key
     
     __weak typeof(context) weakContext = context;
     
-    M5DispatchAsync(queueingQueue, ^{
+    M5VoidBlock dispatchQueued = ^{
         typeof(weakContext) context = weakContext;
         
         if (!context) {
@@ -89,11 +89,13 @@ void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key
         } else {
             [queuedBlocks addObject:block];
         }
-    });
-}
-
-void M5DispatchMain(dispatch_block_t block) {
-    M5DispatchAsync(M5MainQueue(), block);
+    };
+    
+    if (M5OnQueue(queueingQueue)) {
+        dispatchQueued();
+    } else {
+        M5DispatchAsync(queueingQueue, dispatchQueued);
+    }
 }
 
 void M5DispatchAfter(float seconds, dispatch_block_t block) {
@@ -101,18 +103,23 @@ void M5DispatchAfter(float seconds, dispatch_block_t block) {
 }
 
 void M5DispatchSync(dispatch_queue_t queue, dispatch_block_t block) {
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-declarations"
-    if (!strcmp(dispatch_queue_get_label(queue), dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL))) {
+    if (M5OnQueue(queue)) {
         block();
     } else {
         dispatch_sync(queue, block);
     }
-    #pragma clang diagnostic pop
 }
 
 void M5DispatchAsync(dispatch_queue_t queue, dispatch_block_t block) {
     dispatch_async(queue, block);
+}
+
+void M5DispatchMain(dispatch_block_t block) {
+    M5DispatchAsync(M5MainQueue(), block);
+}
+
+BOOL M5OnQueue(dispatch_queue_t queue) {
+    return !strcmp(dispatch_queue_get_label(queue), dispatch_queue_get_label(DISPATCH_CURRENT_QUEUE_LABEL));
 }
 
 dispatch_queue_t M5MainQueue() {
