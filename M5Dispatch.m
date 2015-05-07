@@ -93,11 +93,11 @@ void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key
 }
 
 void M5DispatchMain(dispatch_block_t block) {
-    dispatch_async(dispatch_get_main_queue(), block);
+    M5DispatchAsync(M5MainQueue(), block);
 }
 
 void M5DispatchAfter(float seconds, dispatch_block_t block) {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(seconds * NSEC_PER_SEC)), dispatch_get_main_queue(), block);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(seconds * NSEC_PER_SEC)), M5MainQueue(), block);
 }
 
 void M5DispatchSync(dispatch_queue_t queue, dispatch_block_t block) {
