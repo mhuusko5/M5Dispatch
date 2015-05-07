@@ -75,7 +75,17 @@
     throttled; \
 })
 
+#pragma mark Types
+
+typedef void (^M5VoidBlock)();
+
+typedef void (^M5QueuedDispatchBlock)(M5VoidBlock finished);
+
 #pragma mark Functions
+
+/** Dispatch block async on queue if limit of concurrent context/key dispatches has not been met, else enqueue.
+    For async/nested operations, keep (by simply referencing) and call the 'finished' block when you're done. */
+extern void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key, NSUInteger limit, M5QueuedDispatchBlock block);
 
 /** Dispatch block async to main queue. */
 extern void M5DispatchMain(dispatch_block_t block);
