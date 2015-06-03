@@ -46,8 +46,8 @@
 /* Returns block for returning result of dispatching block synchronously. Usage: M5DispatchSyncReturn(dispatch_get_main_queue(), BOOL)(^{ return NO; }); */
 #define M5DispatchSyncReturn(QUEUE, TYPE) \
 ({ \
-    __block TYPE obj; \
     ^ TYPE (TYPE (^block)()) { \
+        __block TYPE obj; \
         M5DispatchSync(QUEUE, ^{ obj = block(); }); \
         return obj; \
     }; \
