@@ -43,12 +43,12 @@
     }; \
 })
 
-/* Returns block for returning result of dispatching block synchronously. Usage: M5DispatchSyncReturn(dispatch_get_main_queue(), BOOL)(^{ return NO; }); */
-#define M5DispatchSyncReturn(QUEUE, TYPE) \
+/* Returns block for returning result of dispatching block synchronously. Usage: M5DispatchSyncReturn(BOOL)(dispatch_get_main_queue(), ^{ return NO; }); */
+#define M5DispatchSyncReturn(TYPE) \
 ({ \
-    ^ TYPE (TYPE (^block)()) { \
+    ^ TYPE (dispatch_queue_t queue, TYPE (^block)()) { \
         __block TYPE obj; \
-        M5DispatchSync(QUEUE, ^{ obj = block(); }); \
+        M5DispatchSync(queue, ^{ obj = block(); }); \
         return obj; \
     }; \
 })
