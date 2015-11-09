@@ -32,6 +32,30 @@
     }; \
 })
 
+/* Return block for dispatching block max of once every SECS. Usage: M5DispatchDebounce(2.8, M5MainQueue())(^{ NSLog(@"Hello!"); }); */
+#define M5DispatchDebounce(SECS, QUEUE) \
+({ \
+    double dispatchDelay = SECS * NSEC_PER_SEC; \
+    static dispatch_time_t lastCall; \
+    static dispatch_once_t onceToken; \
+    dispatch_once(&onceToken, ^{ \
+        lastCall = dispatch_time(DISPATCH_TIME_NOW, -2 * dispatchDelay); \
+    }); \
+    ^(dispatch_block_t block) { \
+        if (dispatch_time(DISPATCH_TIME_NOW, 0) >= dispatch_time(lastCall, dispatchDelay)) { \
+            lastCall = dispatch_time(DISPATCH_TIME_NOW, 0); \
+            dispatch_async(QUEUE, block); \
+            return; \
+        } \
+        lastCall = dispatch_time(DISPATCH_TIME_NOW, 0); \
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, dispatchDelay), QUEUE, ^{ \
+            if (dispatch_time(DISPATCH_TIME_NOW, 0) >= dispatch_time(lastCall, dispatchDelay)) { \
+                block(); \
+            } \
+        }); \
+    }; \
+})
+
 /* Return block for returning result of dispatching block once. Usage: M5DispatchOnceReturn(NSArray*)(^{ return NSArray.new; }); */
 #define M5DispatchOnceReturn(TYPE) \
 ({ \
