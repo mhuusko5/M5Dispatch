@@ -109,10 +109,10 @@ typedef void (^M5QueuedDispatchBlock)(M5VoidBlock finished);
 
 /** Dispatch block async on queue if limit of concurrent context/key dispatches has not been met, else enqueue.
     For async/nested operations, keep (by simply referencing) and call the 'finished' block when you're done. */
-extern void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key, NSUInteger limit, M5QueuedDispatchBlock block);
+extern void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key, NSUInteger limit, NSTimeInterval timeout, M5QueuedDispatchBlock block);
 
-/** Dispatch block async async to main queue after seconds. */
-extern void M5DispatchAfter(float seconds, dispatch_block_t block);
+/** Dispatch block async to queue after seconds. */
+extern void M5DispatchAfter(float seconds, dispatch_queue_t queue, dispatch_block_t block);
 
 /** Dispatch block sync to queue. Simply calls block if currently on that queue (deadlock safe). */
 extern void M5DispatchSync(dispatch_queue_t queue, dispatch_block_t block);

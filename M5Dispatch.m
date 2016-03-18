@@ -11,7 +11,7 @@
 
 #pragma mark Functions
 
-void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key, NSUInteger limit, M5QueuedDispatchBlock block) {
+void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key, NSUInteger limit, NSTimeInterval timeout, M5QueuedDispatchBlock block) {
     static dispatch_queue_t queueingQueue;
     M5DispatchOnce(^{
         queueingQueue = dispatch_queue_create("com.mhuusko5.M5Dispatch.Queueing", DISPATCH_QUEUE_SERIAL);
@@ -70,7 +70,7 @@ void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key
         if (queuedBlock) {
             [queuedBlocks() removeObject:queuedBlock];
             
-            M5DispatchQueued(queue, context, key, limit, queuedBlock);
+            M5DispatchQueued(queue, context, key, limit, timeout, queuedBlock);
         }
     };
     
@@ -99,6 +99,8 @@ void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key
                 
                 if (!weakFinished) {
                     M5DispatchAsync(queueingQueue, dispatchFinished);
+                } else if (!isinf(timeout)) {
+                    M5DispatchAfter(timeout, queueingQueue, dispatchFinished);
                 }
             });
         } else {
@@ -113,8 +115,8 @@ void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key
     }
 }
 
-void M5DispatchAfter(float seconds, dispatch_block_t block) {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(seconds * NSEC_PER_SEC)), M5MainQueue(), block);
+void M5DispatchAfter(float seconds, dispatch_queue_t queue, dispatch_block_t block) {
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(seconds * NSEC_PER_SEC)), queue, block);
 }
 
 void M5DispatchSync(dispatch_queue_t queue, dispatch_block_t block) {
