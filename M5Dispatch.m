@@ -11,7 +11,7 @@
 
 #pragma mark Functions
 
-void M5DispatchQueued(dispatch_queue_t queue, NSObject *context, const void *key, NSUInteger limit, NSTimeInterval timeout, M5QueuedDispatchBlock block) {
+void M5DispatchQueued(dispatch_queue_t queue, id context, const void *key, NSUInteger limit, NSTimeInterval timeout, M5QueuedDispatchBlock block) {
     static dispatch_queue_t queueingQueue;
     M5DispatchOnce(^{
         queueingQueue = dispatch_queue_create("com.mhuusko5.M5Dispatch.Queueing", DISPATCH_QUEUE_SERIAL);
