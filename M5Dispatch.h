@@ -114,6 +114,9 @@ extern void M5DispatchQueued(dispatch_queue_t queue, id context, const void *key
 /** Dispatch block async to queue after seconds. */
 extern void M5DispatchAfter(float seconds, dispatch_queue_t queue, dispatch_block_t block);
 
+/** Dispatch block async to queue after seconds, call returned block to cancel. */
+extern M5VoidBlock M5DispatchAfterCancel(float seconds, dispatch_queue_t queue, dispatch_block_t block);
+
 /** Dispatch block sync to queue. Simply calls block if currently on that queue (deadlock safe). */
 extern void M5DispatchSync(dispatch_queue_t queue, dispatch_block_t block);
 

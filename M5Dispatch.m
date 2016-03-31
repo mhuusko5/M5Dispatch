@@ -119,6 +119,20 @@ void M5DispatchAfter(float seconds, dispatch_queue_t queue, dispatch_block_t blo
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(seconds * NSEC_PER_SEC)), queue, block);
 }
 
+M5VoidBlock M5DispatchAfterCancel(float seconds, dispatch_queue_t queue, dispatch_block_t block) {
+    __block BOOL cancelled = NO;
+    
+    M5DispatchAfter(seconds, queue, ^{
+        if (!cancelled) {
+            block();
+        }
+    });
+    
+    return ^{
+        M5DispatchAsync(queue, ^{ cancelled = YES; });
+    };
+}
+
 void M5DispatchSync(dispatch_queue_t queue, dispatch_block_t block) {
     if (M5OnQueue(queue)) {
         block();
