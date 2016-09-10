@@ -5,8 +5,6 @@
 
 #import <Foundation/Foundation.h>
 
-#import "M5Macros.h"
-
 NS_ASSUME_NONNULL_BEGIN
 
 #if defined __cplusplus
